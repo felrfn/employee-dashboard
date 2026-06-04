@@ -64,10 +64,10 @@ export default async function EmployeesPage({ searchParams }: Props) {
           <thead className="bg-gray-50 text-xs uppercase text-gray-600">
             <tr>
               <th className="px-3 py-2">Emp No</th>
-              <th className="px-3 py-2">Nama</th>
-              <th className="px-3 py-2">Departemen</th>
-              <th className="px-3 py-2">Jabatan</th>
-              <th className="px-3 py-2">Gaji Saat Ini</th>
+              <th className="px-3 py-2">Name</th>
+              <th className="px-3 py-2">Department</th>
+              <th className="px-3 py-2">Job Title</th>
+              <th className="px-3 py-2">Current Salary</th>
             </tr>
           </thead>
           <tbody>

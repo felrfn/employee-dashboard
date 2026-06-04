@@ -61,3 +61,23 @@ export type PagedResult<T> = {
   total: number;
   totalPages: number;
 };
+
+export type ManagerHistoryRow = {
+  emp_no: number;
+  first_name: string;
+  last_name: string;
+  gender: Gender;
+  hire_date: string;
+  dept_no: string;
+  dept_name: string;
+  from_date: string;
+  to_date: string;
+};
+
+export type EmployeeNameRow = {
+  emp_no: number;
+  first_name: string;
+  last_name: string;
+  hire_date: string;
+};
+

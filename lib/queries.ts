@@ -4,8 +4,10 @@ import { queryOne, queryRows } from './sql';
 import type {
   DashboardStats,
   DeptHistoryRow,
+  EmployeeNameRow,
   EmployeeDetail,
   EmployeeListItem,
+  ManagerHistoryRow,
   PagedResult,
   SalaryRow,
   TitleRow
@@ -204,3 +206,84 @@ export async function getEmployeeDetail(empNo: number): Promise<EmployeeDetail |
     deptHistory
   };
 }
+
+type ViewCountRow = RowDataPacket & { total: number | string };
+
+export async function listManagerHistory(input: {
+  page?: number;
+  pageSize?: number;
+}): Promise<PagedResult<ManagerHistoryRow>> {
+  const { page, pageSize, offset } = normalizePagination({ page: input.page, pageSize: input.pageSize });
+
+  const countRow = await queryOne<ViewCountRow>(
+    `
+    SELECT COUNT(*) AS total
+    FROM v_department_managers
+    `
+  );
+
+  const total = Number(countRow?.total ?? 0);
+  const totalPages = total === 0 ? 1 : Math.max(1, Math.ceil(total / pageSize));
+
+  const items = await queryRows<RowDataPacket & ManagerHistoryRow>(
+    `
+    SELECT
+      emp_no,
+      first_name,
+      last_name,
+      gender,
+      hire_date,
+      dept_no,
+      dept_name,
+      from_date,
+      to_date
+    FROM v_department_managers
+    ORDER BY dept_no, from_date DESC, emp_no
+    LIMIT ? OFFSET ?
+    `,
+    [pageSize, offset]
+  );
+
+  return { items, page, pageSize, total, totalPages };
+}
+
+export async function searchEmployeesByLastNamePrefix(input: {
+  lastNamePrefix: string;
+  page?: number;
+  pageSize?: number;
+}): Promise<PagedResult<EmployeeNameRow>> {
+  const lastNamePrefix = input.lastNamePrefix.trim();
+  const { page, pageSize, offset } = normalizePagination({ page: input.page, pageSize: input.pageSize });
+
+  if (!lastNamePrefix) {
+    return { items: [], page, pageSize, total: 0, totalPages: 1 };
+  }
+
+  const like = `${lastNamePrefix}%`;
+
+  const countRow = await queryOne<CountRow>(
+    `
+    SELECT COUNT(*) AS total
+    FROM employees
+    WHERE last_name LIKE ?
+    `,
+    [like]
+  );
+
+  const total = Number(countRow?.total ?? 0);
+  const totalPages = total === 0 ? 1 : Math.max(1, Math.ceil(total / pageSize));
+
+  const items = await queryRows<RowDataPacket & EmployeeNameRow>(
+    `
+    SELECT emp_no, first_name, last_name, hire_date
+    FROM employees
+    WHERE last_name LIKE ?
+    ORDER BY last_name, emp_no
+    LIMIT ? OFFSET ?
+    `,
+    [like, pageSize, offset]
+  );
+
+  return { items, page, pageSize, total, totalPages };
+}
+
